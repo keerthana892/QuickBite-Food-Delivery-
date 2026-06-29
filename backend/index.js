@@ -36,7 +36,13 @@ app.use(cors({
 }));
 
 // ✅ handle preflight requests
-app.options("*", cors());
+app.options("*", cors({
+  origin: [
+    "http://localhost:5173",
+    "https://find-your-dream-job-pink.vercel.app"
+  ],
+  credentials: true
+}));
 
 // ================= ROUTES =================
 app.use("/api/user", userRouter);
