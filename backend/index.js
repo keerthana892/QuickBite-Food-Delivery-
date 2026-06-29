@@ -13,36 +13,50 @@ import applicationRouter from "./routes/application.route.js";
 
 const app = express();
 
-// middlewares
+// ================= MIDDLEWARES =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ✅ FIXED CORS (important for deployment)
-const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://find-your-dream-job-pink.vercel.app"
-  ],
-  credentials: true,
-};
-app.use(cors(corsOptions));
+// ✅ FINAL CORS FIX (VERY IMPORTANT)
+app.use(cors({
+  origin: true, // allow all origins
+  credentials: true
+}));
 
-// routes (API)
+// ✅ Handle preflight & headers manually (fixes Render + Vercel issue)
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin);
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+
+  // Handle OPTIONS request (important for login)
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+// ================= ROUTES =================
 app.use("/api/user", userRouter);
 app.use("/api/company", companyRouter);
 app.use("/api/job", jobRouter);
 app.use("/api/application", applicationRouter);
 
-// ✅ REMOVE frontend dist code ❌
-// ❌ DO NOT USE express.static for frontend here
-
-// ✅ Simple test route
+// ✅ Test route
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// ✅ FIX PORT handling
+// ================= PORT =================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
